@@ -39,6 +39,10 @@ func (g GridHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		g.DataHandler(w, req)
 		return
 	}
+	if strings.HasSuffix(req.URL.Path, "/clone") {
+		g.CloneHandler(w, req)
+		return
+	}
 
 	key := strings.TrimPrefix(req.URL.Path, "/grid/")
 	if _, err := g.DataStore.Get(key); err != nil {
@@ -63,6 +67,30 @@ type GridElement struct {
 }
 
 type GridData []GridElement
+
+func (g GridHandler) CloneHandler(w http.ResponseWriter, req *http.Request) {
+	key := strings.TrimSuffix(strings.TrimPrefix(req.URL.Path, "/grid/"), "/clone")
+	val, err := g.DataStore.Get(key)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	newKey, err := g.KeyGenerator.New()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	err = g.DataStore.Set(newKey, val)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	http.Redirect(w, req, getAbsURL("/grid/"+newKey, req), http.StatusTemporaryRedirect)
+}
 
 func (g GridHandler) DataHandler(w http.ResponseWriter, req *http.Request) {
 	key := strings.TrimSuffix(strings.TrimPrefix(req.URL.Path, "/grid/"), "/data")

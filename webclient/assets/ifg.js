@@ -33,6 +33,7 @@ var set_editable = function(e) {
         $('.gs-resize-handle').show();
         gridster.enable();
         $('[role="btn-new-item"]').show();
+        $('[role="link-clone"]').show();
         $('[role="controls"]').show();
         $('[role="btn-edit"]').html('Save');
     }
@@ -41,6 +42,7 @@ var set_editable = function(e) {
         $('.gs-resize-handle').hide();
         gridster.disable();
         $('[role="btn-new-item"]').hide();
+        $('[role="link-clone"]').hide();
         $('[role="controls"]').hide();
         $('[role="btn-edit"]').html('Edit');
     }
@@ -106,8 +108,7 @@ var upload_state = function() {
         url: window.location.pathname + "/data",
         data: JSON.stringify(data)
     }).done(function( data ) {
-        console.log("put data");
-
+        console.log(data);
     });
 }
 
@@ -132,6 +133,7 @@ var download_state = function() {
 }
 
 $('[role="btn-new-item"]').click(add_new);
+$('[role="link-clone"]').attr('href', window.location.href + "/clone");
 
 $('[role="btn-edit"]').on('click', function() {
     set_editable(!editable);
