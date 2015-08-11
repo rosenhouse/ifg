@@ -96,5 +96,5 @@ func (a *Application) getAssetsHandler() http.Handler {
 }
 
 func (a *Application) homePageHandler(w http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(w, `<html><body><a href="/grid/new">New Grid</a></body></html>`)
+	fmt.Fprintf(w, `<html><body><a href="/grid/new">New Grid</a><br><br><br><br><br><br><a href="https://github.com/rosenhouse/ifg">Source</a></body></html>`)
 }
