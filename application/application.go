@@ -56,11 +56,10 @@ func NewApplication(config Config) (*Application, error) {
 	}
 	redisHost, redisPassword, err := getRedisCloudConfig(config.VCAPServices)
 	if err != nil {
-		panic(err)
 		return nil, err
 	}
 	dataStore := &RedisDataStore{Host: redisHost, Password: redisPassword}
-	err = dataStore.Connect()
+	err = dataStore.Initialize()
 	if err != nil {
 		return nil, err
 	}

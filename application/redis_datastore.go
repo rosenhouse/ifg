@@ -9,10 +9,10 @@ import (
 type RedisDataStore struct {
 	Host     string
 	Password string
-	conn     redis.Conn
+	pool     *redis.Pool
 }
 
-func (s *RedisDataStore) Connect() error {
+func (s *RedisDataStore) checkConnection() error {
 	c, err := redis.Dial("tcp", s.Host)
 	if err != nil {
 		return err
@@ -22,19 +22,39 @@ func (s *RedisDataStore) Connect() error {
 		c.Close()
 		return err
 	}
-	s.conn = c
+	c.Close()
 	return nil
 }
 
-func (s *RedisDataStore) Close() error {
-	if s.conn != nil {
-		return s.conn.Close()
+func (s *RedisDataStore) Initialize() error {
+	err := s.checkConnection()
+	if err != nil {
+		return err
+	}
+	s.pool = &redis.Pool{
+		MaxIdle:   5,
+		MaxActive: 5,
+		Dial: func() (redis.Conn, error) {
+			c, err := redis.Dial("tcp", s.Host)
+			if err != nil {
+				return nil, err
+			}
+			_, err = c.Do("AUTH", s.Password)
+			if err != nil {
+				c.Close()
+				return nil, err
+			}
+			return c, nil
+		},
 	}
 	return nil
 }
 
 func (s *RedisDataStore) Get(key string) ([]byte, error) {
-	val, err := s.conn.Do("GET", key)
+	c := s.pool.Get()
+	defer c.Close()
+
+	val, err := c.Do("GET", key)
 	if err != nil {
 		return nil, err
 	}
@@ -46,6 +66,9 @@ func (s *RedisDataStore) Get(key string) ([]byte, error) {
 }
 
 func (s *RedisDataStore) Set(key string, val []byte) error {
-	_, err := s.conn.Do("SET", key, val)
+	c := s.pool.Get()
+	defer c.Close()
+
+	_, err := c.Do("SET", key, val)
 	return err
 }
