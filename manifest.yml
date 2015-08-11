@@ -3,7 +3,7 @@ applications:
 - name: ifg
   host: ifg-dev
   memory: 32M
-  instances: 1
+  instances: 3
   command: bin/ifg
   env:
     ROOT_PATH: "$HOME"
