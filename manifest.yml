@@ -1,6 +1,9 @@
 ---
 applications:
-- name: ifg-dev
+- name: ifg
+  host: ifg-dev
   memory: 32M
   instances: 1
-  command: bin/ifg-dev
+  command: bin/ifg
+  env:
+    ROOT_PATH: "$HOME"

@@ -3,14 +3,16 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/rosenhouse/ifg/application"
 )
 
 func main() {
 	config := application.Config{
-		RootPath: LoadOrFail("ROOT_PATH"),
-		Port:     LoadOrFail("PORT"),
+		RootPath:     LoadOrFail("ROOT_PATH"),
+		Port:         LoadOrFail("PORT"),
+		VCAPServices: LoadOrFail("VCAP_SERVICES"),
 	}
 
 	app, err := application.NewApplication(config)
@@ -34,6 +36,8 @@ func LoadOrFail(variable string) string {
 }
 
 func Fail(format string, a ...interface{}) {
+	time.Sleep(3 * time.Second)
 	fmt.Fprintf(os.Stderr, format, a...)
+	fmt.Fprintf(os.Stderr, "\n")
 	os.Exit(1)
 }

@@ -1,6 +1,7 @@
 package application
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -17,10 +18,9 @@ type keyGenerator interface {
 }
 
 type Config struct {
-	RootPath      string
-	Port          string
-	RedisHost     string
-	RedisPassword string
+	RootPath     string
+	Port         string
+	VCAPServices string
 }
 
 type Application struct {
@@ -31,12 +31,40 @@ type Application struct {
 	GridHandler  http.Handler
 }
 
+func getRedisCloudConfig(vcap_services string) (string, string, error) {
+	var services map[string][]struct {
+		Name        string
+		Credentials struct {
+			Hostname string
+			Password string
+			Port     string
+		}
+	}
+	err := json.Unmarshal([]byte(vcap_services), &services)
+	if err != nil {
+		return "", "", err
+	}
+
+	creds := services["rediscloud"][0].Credentials
+	return fmt.Sprintf("%s:%s", creds.Hostname, creds.Port), creds.Password, nil
+}
+
 func NewApplication(config Config) (*Application, error) {
 	gridHTML, err := ioutil.ReadFile(filepath.Join(config.RootPath, "webclient", "grid.html"))
 	if err != nil {
 		return nil, err
 	}
-	dataStore := NewMemoryDataStore()
+	redisHost, redisPassword, err := getRedisCloudConfig(config.VCAPServices)
+	if err != nil {
+		panic(err)
+		return nil, err
+	}
+	dataStore := &RedisDataStore{Host: redisHost, Password: redisPassword}
+	err = dataStore.Connect()
+	if err != nil {
+		return nil, err
+	}
+
 	keyGenerator := KeyGenerator{dataStore}
 	gridHandler := GridHandler{gridHTML, dataStore, keyGenerator}
 	return &Application{
