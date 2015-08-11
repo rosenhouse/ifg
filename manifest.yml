@@ -1,0 +1,6 @@
+---
+applications:
+- name: ifg-dev
+  memory: 32M
+  instances: 1
+  command: bin/ifg-dev
