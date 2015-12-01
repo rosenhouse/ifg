@@ -10,7 +10,7 @@ import (
 
 func main() {
 	config := application.Config{
-		RootPath:     LoadOrFail("ROOT_PATH"),
+		RootPath:     os.ExpandEnv(LoadOrFail("ROOT_PATH")),
 		Port:         LoadOrFail("PORT"),
 		VCAPServices: LoadOrFail("VCAP_SERVICES"),
 	}
